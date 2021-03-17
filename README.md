@@ -27,6 +27,25 @@ Limitations
 * Named arguments not supported for helpers, modifiers
 * For components, only 'template-only' glimmer components supported
 
+
+# Attention!
+
+Decorators expecting different signatures:
+
+```js
+`@asHelper` 
+function myHelper(...positionalParams) {
+
+}
+```
+
+```js
+`@asModifier` 
+function myModifier(element, ...positionalParams) {
+
+}
+```
+
 Usage
 ------------------------------------------------------------------------------
 
