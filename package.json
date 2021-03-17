@@ -1,6 +1,6 @@
 {
   "name": "ember-template-import-decorators",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "List of useful opinionated decorators for template import primitives.",
   "keywords": [
     "ember-addon"
