@@ -1,13 +1,13 @@
 {
   "name": "ember-template-import-decorators",
-  "version": "0.0.0",
-  "description": "The default blueprint for ember-cli addons.",
+  "version": "0.0.1",
+  "description": "List of useful opinionated decorators for template import primitives.",
   "keywords": [
     "ember-addon"
   ],
-  "repository": "",
+  "repository": "https://github.com/lifeart/ember-template-import-decorators",
   "license": "MIT",
-  "author": "",
+  "author": "Aleksandr Kanunnikov <lifeart92@gmail.com>",
   "directories": {
     "doc": "doc",
     "test": "tests"
