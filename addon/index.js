@@ -10,14 +10,17 @@ class ResourceCell {
   }
   @tracked value;
   revision = -1;
+  iteration = 0;
   revalidate() {
     let revalidate = this.fn();
     if (this.revision !== 0) {
-      Promise.resolve(revalidate).then((cb) => {
-        cb().then((value) => {
+      this.iteration++;
+      let iteration = this.iteration;
+      Promise.resolve(revalidate()).then((value) => {
+        if (this.iteration === iteration) {
           this.revision = 0;
           this.value = value;
-        });
+        }
       });
     }
     return this.value;

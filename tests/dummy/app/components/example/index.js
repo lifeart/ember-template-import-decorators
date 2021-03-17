@@ -4,12 +4,11 @@ import {
   asHelper,
   asModifier,
   asComponent,
-  asResource
+  asResource,
 } from 'ember-template-import-decorators';
 import { tracked } from '@glimmer/tracking';
 
 export default class ExampleComponent extends Component {
-
   constructor() {
     super(...arguments);
     setInterval(() => {
@@ -35,12 +34,14 @@ export default class ExampleComponent extends Component {
   @tracked helloCounter = 0;
 
   @asResource
-  async sayHello() {
+  sayHello() {
     // here we use all tracked data
     let value = Date.now() + this.helloCounter;
     // here logic, based on collected tracked data;
     return async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) =>
+        setTimeout(resolve, Math.random() * 10000)
+      );
       return value;
     };
   }
