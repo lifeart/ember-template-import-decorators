@@ -3,11 +3,14 @@ import { modifier } from 'ember-modifier';
 import { helper } from '@ember/component/helper';
 import { setComponentTemplate } from '@ember/component';
 
-export function asHelper(ctx, _, desc) {
+export function asHelper(_, __, desc) {
   return {
-    value: helper(function (positional) {
-      return desc.value.call(ctx, ...positional);
-    }),
+    get() {
+      let _this = this;
+      return helper(function (positional) {
+        return desc.value.call(_this, ...positional);
+      });
+    },
   };
 }
 
@@ -17,10 +20,13 @@ export function asComponent(_, __, desc) {
   };
 }
 
-export function asModifier(ctx, _, desc) {
+export function asModifier(_, __, desc) {
   return {
-    value: modifier(function (element, positional) {
-      return desc.value.call(ctx, ...[element, ...positional]);
-    }),
+    get() {
+      let _this = this;
+      return modifier(function (element, positional) {
+        return desc.value.call(_this, ...[element, ...positional]);
+      });
+    },
   };
 }
