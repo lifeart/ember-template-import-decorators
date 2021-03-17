@@ -4,9 +4,21 @@ import {
   asHelper,
   asModifier,
   asComponent,
+  asResource
 } from 'ember-template-import-decorators';
+import { tracked } from '@glimmer/tracking';
 
 export default class ExampleComponent extends Component {
+
+  constructor() {
+    super(...arguments);
+    setInterval(() => {
+      this.helloCounter++;
+      console.log('trigger revalidation');
+      console.log(this.helloCounter);
+    }, 5000);
+  }
+
   @asHelper
   uppercase(a) {
     return a.toUpperCase();
@@ -18,5 +30,18 @@ export default class ExampleComponent extends Component {
   @asModifier
   changeBackground(element, color) {
     element.style.backgroundColor = color;
+  }
+
+  @tracked helloCounter = 0;
+
+  @asResource
+  async sayHello() {
+    // here we use all tracked data
+    let value = Date.now() + this.helloCounter;
+    // here logic, based on collected tracked data;
+    return async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return value;
+    };
   }
 }
