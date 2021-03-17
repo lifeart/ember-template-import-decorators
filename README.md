@@ -53,7 +53,7 @@ Usage
 // my-component.js
 ```js
 import Component from "@glimmer/component";
-import { hbs } from "ember-cli-htmlbars";
+import { hbs as tpl } from "ember-cli-htmlbars";
 import { asHelper, asModifier, asComponent } from "ember-template-import-decorators";
 
 export default class ExampleComponent extends Component {
@@ -63,7 +63,7 @@ export default class ExampleComponent extends Component {
   }
 
   @asComponent
-  GreetingComponent = hbs`<h1 ...attributes>{{@greeting}}</h1>`;
+  GreetingComponent = tpl`<h1 ...attributes>{{@greeting}}</h1>`;
 
   @asModifier
   changeBackground(element, color) {

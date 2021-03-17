@@ -11,9 +11,9 @@ export function asHelper(ctx, _, desc) {
   };
 }
 
-export function asComponent(ctx) {
+export function asComponent(_, __, desc) {
   return {
-    value: setComponentTemplate(ctx.initializer(), templateOnly()),
+    value: setComponentTemplate(desc.initializer(), templateOnly()),
   };
 }
 
