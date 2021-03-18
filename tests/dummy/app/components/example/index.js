@@ -42,6 +42,7 @@ export default class ExampleComponent extends Component {
       await new Promise((resolve) =>
         setTimeout(resolve, Math.random() * 10000)
       );
+      console.log('async function executed');
       return value;
     };
   }

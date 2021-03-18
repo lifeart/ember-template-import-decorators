@@ -36,7 +36,6 @@ class ResourceCell {
   @tracked value;
   iteration = 0;
   @cached get validation() {
-    console.log('revoke validation');
     let revalidate = this.fn();
     try {
       return true;
@@ -50,8 +49,6 @@ class ResourceCell {
           !isDestroyed(this.ctx)
         ) {
           this.value = value;
-        } else {
-          console.log('revisions mismatch');
         }
       });
     }
