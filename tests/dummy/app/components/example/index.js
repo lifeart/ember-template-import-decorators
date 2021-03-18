@@ -8,6 +8,7 @@ import {
 } from 'ember-template-import-decorators';
 import { tracked } from '@glimmer/tracking';
 
+
 export default class ExampleComponent extends Component {
   constructor() {
     super(...arguments);
@@ -34,15 +35,29 @@ export default class ExampleComponent extends Component {
   @tracked helloCounter = 0;
 
   @asResource
-  sayHello() {
+  get sayHello() {
     // here we use all tracked data
-    let value = Date.now() + this.helloCounter;
+    let value = Date.now() + this.helloCounter + this.toMe;
     // here logic, based on collected tracked data;
-    return async () => {
+    return async (prevValue) => {
       await new Promise((resolve) =>
         setTimeout(resolve, Math.random() * 10000)
       );
-      console.log('async function executed');
+      console.log('async function executed', { prevValue });
+      return value;
+    };
+  }
+
+  @asResource
+  get toMe() {
+    // here we use all tracked data
+    let value = Date.now() + this.helloCounter;
+    // here logic, based on collected tracked data;
+    return async (prevValue) => {
+      await new Promise((resolve) =>
+        setTimeout(resolve, Math.random() * 10000)
+      );
+      console.log('hello', prevValue);
       return value;
     };
   }

@@ -5,6 +5,7 @@ import { setComponentTemplate } from '@ember/component';
 import { tracked } from '@glimmer/tracking';
 import { createCache, getValue } from '@glimmer/tracking/primitives/cache';
 import { isDestroying, isDestroyed } from '@ember/destroyable';
+import { assert, debug } from '@ember/debug';
 
 // from https://github.com/pzuraq/tracked-toolbox/blob/master/addon/index.js
 export function cached(target, key, value) {
@@ -29,12 +30,15 @@ export function cached(target, key, value) {
 }
 
 class ResourceCell {
-  constructor(fn, ctx) {
+  constructor(fn, ctx, key) {
     this.fn = fn;
     this.ctx = ctx;
+    this.key = key;
   }
   @tracked value;
   iteration = 0;
+  lastValue;
+  key = '';
   @cached get validation() {
     let revalidate = this.fn();
     try {
@@ -42,13 +46,28 @@ class ResourceCell {
     } finally {
       this.iteration++;
       let iteration = this.iteration;
-      Promise.resolve(revalidate()).then((value) => {
+      Promise.resolve(revalidate(this.lastValue)).then((value) => {
         if (
           this.iteration === iteration &&
           !isDestroying(this.ctx) &&
           !isDestroyed(this.ctx)
         ) {
+          this.lastValue = value;
           this.value = value;
+        } else {
+          try {
+            debug(
+              `Resource "${this.key}" on "${
+                this.ctx.constructor.name
+              }" update rejected because new update already started, rejected value: ${JSON.stringify(
+                value
+              )}`
+            );
+          } catch (error) {
+            debug(
+              `Resource "${this.key}" on "${this.ctx.constructor.name}" update rejected because new update already started`
+            );
+          }
         }
       });
     }
@@ -59,6 +78,8 @@ class ResourceCell {
 }
 
 export function asResource(_, key, desc) {
+  assert('@asResource can only be used on getters', desc && desc.get);
+
   let cells = new WeakMap();
   return {
     get() {
@@ -71,10 +92,14 @@ export function asResource(_, key, desc) {
       }
       let cellScope = cells.get(this);
       if (!(key in cellScope)) {
-        let cell_ = new ResourceCell(() => {
-          let revalidate = desc.value.call(_this);
-          return revalidate;
-        }, _this);
+        let cell_ = new ResourceCell(
+          () => {
+            let revalidate = desc.get.call(_this);
+            return revalidate;
+          },
+          _this,
+          key
+        );
         cellScope[key] = cell_;
       }
       let cell = cellScope[key];
@@ -84,6 +109,11 @@ export function asResource(_, key, desc) {
 }
 
 export function asHelper(_, __, desc) {
+  assert(
+    '@asHelper can only be used on functions',
+    desc && desc.value && typeof desc.value === 'function'
+  );
+
   return {
     get() {
       let _this = this;
@@ -101,6 +131,10 @@ export function asComponent(_, __, desc) {
 }
 
 export function asModifier(_, __, desc) {
+  assert(
+    '@asModifier can only be used on functions',
+    desc && desc.value && typeof desc.value === 'function'
+  );
   return {
     get() {
       let _this = this;
