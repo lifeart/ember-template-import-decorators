@@ -3,27 +3,61 @@ import { modifier } from 'ember-modifier';
 import { helper } from '@ember/component/helper';
 import { setComponentTemplate } from '@ember/component';
 import { tracked } from '@glimmer/tracking';
+import { createCache, getValue } from '@glimmer/tracking/primitives/cache';
+import { isDestroying, isDestroyed } from '@ember/destroyable';
+
+// from https://github.com/pzuraq/tracked-toolbox/blob/master/addon/index.js
+export function cached(target, key, value) {
+  let { get, set } = value;
+
+  let caches = new WeakMap();
+
+  return {
+    get() {
+      let cache = caches.get(this);
+
+      if (cache === undefined) {
+        cache = createCache(get.bind(this));
+        caches.set(this, cache);
+      }
+
+      return getValue(cache);
+    },
+
+    set,
+  };
+}
 
 class ResourceCell {
-  constructor(fn) {
+  constructor(fn, ctx) {
     this.fn = fn;
+    this.ctx = ctx;
   }
   @tracked value;
-  revision = -1;
   iteration = 0;
-  revalidate() {
+  @cached get validation() {
+    console.log('revoke validation');
     let revalidate = this.fn();
-    if (this.revision !== 0) {
+    try {
+      return true;
+    } finally {
       this.iteration++;
       let iteration = this.iteration;
       Promise.resolve(revalidate()).then((value) => {
-        if (this.iteration === iteration) {
-          this.revision = 0;
+        if (
+          this.iteration === iteration &&
+          !isDestroying(this.ctx) &&
+          !isDestroyed(this.ctx)
+        ) {
           this.value = value;
+        } else {
+          console.log('revisions mismatch');
         }
       });
     }
-    return this.value;
+  }
+  revalidate() {
+    return this.validation ? this.value : undefined;
   }
 }
 
@@ -32,6 +66,9 @@ export function asResource(_, key, desc) {
   return {
     get() {
       let _this = this;
+      if (isDestroyed(this) || isDestroying(this)) {
+        return undefined;
+      }
       if (!cells.has(this)) {
         cells.set(this, {});
       }
@@ -40,15 +77,11 @@ export function asResource(_, key, desc) {
         let cell_ = new ResourceCell(() => {
           let revalidate = desc.value.call(_this);
           return revalidate;
-        });
+        }, _this);
         cellScope[key] = cell_;
       }
       let cell = cellScope[key];
-      try {
-        return cell.revalidate();
-      } finally {
-        cell.revision++;
-      }
+      return cell.revalidate();
     },
   };
 }
